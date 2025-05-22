@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Financeiro Pessoal</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Controle Financeiro</h1>
+        <div id="user-info" class="hidden">
+            <span id="current-user"></span>
+            <button id="switch-user" class="btn-outline">Trocar</button>
+        </div>
+    </header>
+
+    <!-- Seleção de Usuário -->
+    <div id="user-selection" class="container">
+        <h2>Selecione um usuário para continuar</h2>
+        <div id="users-list" class="users-container"></div>
+    </div>
+
+    <!-- Formulário de Novo Usuário -->
+    <div id="new-user-form" class="container hidden">
+        <h2>Criar Novo Usuário</h2>
+        <div class="form-group">
+            <label for="user-name">Nome</label>
+            <input type="text" id="user-name" placeholder="Digite seu nome" required>
+        </div>
+        <div class="form-group">
+            <label for="user-color">Cor do perfil</label>
+            <input type="color" id="user-color" value="#3498db">
+        </div>
+        <div class="form-actions">
+            <button id="cancel-user" class="btn-outline">Cancelar</button>
+            <button id="create-user" class="btn">Criar Usuário</button>
+        </div>
+    </div>
+
+    <!-- Aplicação Principal -->
+    <div id="app-container" class="hidden">
+        <!-- Dashboard -->
+        <div class="dashboard">
+            <div class="card">
+                <h3>Saldo Total</h3>
+                <div id="balance" class="balance positive">R$ 0,00</div>
+            </div>
+            <div class="card">
+                <h3>Receitas</h3>
+                <div id="income-total" class="positive">R$ 0,00</div>
+            </div>
+            <div class="card">
+                <h3>Despesas</h3>
+                <div id="expense-total" class="negative">R$ 0,00</div>
+            </div>
+        </div>
+
+        <!-- Abas -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="transactions">Transações</button>
+            <button class="tab-btn" data-tab="pending">Pendentes</button>
+            <button class="tab-btn" data-tab="accounts">Contas</button>
+            <button class="tab-btn" data-tab="recurring">Recorrentes</button>
+            <button class="tab-btn" data-tab="goals">Metas</button>
+            <button class="tab-btn" data-tab="reports">Relatórios</button>
+        </div>
+
+        <!-- Conteúdo das Abas -->
+        
+        <!-- Transações -->
+        <div id="transactions" class="tab-content active">
+            <div class="transaction-form">
+                <h2>Nova Transação</h2>
+                <form id="form">
+                    <div class="form-group">
+                        <label for="description">Descrição</label>
+                        <input type="text" id="description" placeholder="Descrição da transação" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Valor (R$)</label>
+                        <input type="number" id="amount" placeholder="0,00" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="account">Conta</label>
+                        <select id="account" required>
+                            <option value="" disabled selected>Selecione uma conta</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Data de Lançamento</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="due-date">Data de Vencimento</label>
+                        <input type="date" id="due-date">
+                        <small>*Apenas para despesas futuras</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status" required>
+                            <option value="pago">Pago/Recebido</option>
+                            <option value="pendente">Pendente</option>
+                        </select>
+                        <small>*Despesas pendentes não afetam o saldo até serem pagas</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Categoria</label>
+                        <select id="category" required>
+                            <option value="" disabled selected>Selecione uma categoria</option>
+                            <option value="salario">Salário</option>
+                            <option value="investimentos">Investimentos</option>
+                            <option value="alimentacao">Alimentação</option>
+                            <option value="transporte">Transporte</option>
+                            <option value="moradia">Moradia</option>
+                            <option value="lazer">Lazer</option>
+                            <option value="saude">Saúde</option>
+                            <option value="educacao">Educação</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Tipo</label>
+                        <select id="type" required>
+                            <option value="receita">Receita</option>
+                            <option value="despesa">Despesa</option>
+                            <option value="transferencia">Transferência</option>
+                        </select>
+                    </div>
+                    <div id="transfer-fields" class="form-group hidden">
+                        <label for="to-account">Conta de Destino</label>
+                        <select id="to-account" required>
+                            <option value="" disabled selected>Selecione uma conta</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="checkbox" id="is-recurring">
+                        <label for="is-recurring">Transação Recorrente</label>
+                    </div>
+                    <div id="recurring-options" class="hidden">
+                        <div class="form-group">
+                            <label for="frequency">Frequência</label>
+                            <select id="frequency" required>
+                                <option value="mensal">Mensal</option>
+                                <option value="semanal">Semanal</option>
+                                <option value="quinzenal">Quinzenal</option>
+                                <option value="anual">Anual</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="end-date">Data Final (opcional)</label>
+                            <input type="date" id="end-date">
+                            <small>*Deixe em branco para recorrência sem fim</small>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="reset" class="btn-outline">Limpar</button>
+                        <button type="submit" class="btn">Adicionar</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="transactions">
+                <h2>Histórico de Transações</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="filter-type">Tipo</label>
+                        <select id="filter-type">
+                            <option value="todos">Todos</option>
+                            <option value="receita">Receitas</option>
+                            <option value="despesa">Despesas</option>
+                            <option value="transferencia">Transferências</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-category">Categoria</label>
+                        <select id="filter-category">
+                            <option value="todos">Todas</option>
+                            <option value="salario">Salário</option>
+                            <option value="investimentos">Investimentos</option>
+                            <option value="alimentacao">Alimentação</option>
+                            <option value="transporte">Transporte</option>
+                            <option value="moradia">Moradia</option>
+                            <option value="lazer">Lazer</option>
+                            <option value="saude">Saúde</option>
+                            <option value="educacao">Educação</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-account">Conta</label>
+                        <select id="filter-account">
+                            <option value="todos">Todas</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-status">Status</label>
+                        <select id="filter-status">
+                            <option value="todos">Todos</option>
+                            <option value="pago">Pago/Recebido</option>
+                            <option value="pendente">Pendente</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="search">Buscar</label>
+                        <input type="text" id="search" placeholder="Buscar...">
+                    </div>
+                </div>
+                <div id="transactions-list" class="transactions-list"></div>
+            </div>
+        </div>
+        
+        <!-- Despesas Pendentes -->
+        <div id="pending" class="tab-content">
+            <h2>Despesas Pendentes</h2>
+            <div id="pending-list" class="pending-list"></div>
+        </div>
+        
+        <!-- Contas -->
+        <div id="accounts" class="tab-content">
+            <div class="accounts-form">
+                <h2>Nova Conta</h2>
+                <form id="account-form">
+                    <div class="form-group">
+                        <label for="account-name">Nome da Conta</label>
+                        <input type="text" id="account-name" placeholder="Ex: Conta Corrente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="account-type">Tipo</label>
+                        <select id="account-type" required>
+                            <option value="corrente">Conta Corrente</option>
+                            <option value="poupanca">Poupança</option>
+                            <option value="investimento">Investimento</option>
+                            <option value="carteira">Carteira</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="initial-balance">Saldo Inicial (R$)</label>
+                        <input type="number" id="initial-balance" placeholder="0,00" step="0.01" value="0">
+                    </div>
+                    <div class="form-actions">
+                        <button type="reset" class="btn-outline">Limpar</button>
+                        <button type="submit" class="btn">Adicionar Conta</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="accounts-list">
+                <h2>Minhas Contas</h2>
+                <div id="accounts-list"></div>
+            </div>
+        </div>
+        
+        <!-- Transações Recorrentes -->
+        <div id="recurring" class="tab-content">
+            <h2>Transações Recorrentes</h2>
+            <div id="recurring-list" class="recurring-list"></div>
+        </div>
+        
+        <!-- Metas Financeiras -->
+        <div id="goals" class="tab-content">
+            <div class="goals-form">
+                <h2>Nova Meta Financeira</h2>
+                <form id="goal-form">
+                    <div class="form-group">
+                        <label for="goal-name">Nome da Meta</label>
+                        <input type="text" id="goal-name" placeholder="Ex: Viagem de férias" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-amount">Valor Total (R$)</label>
+                        <input type="number" id="goal-amount" placeholder="0,00" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-date">Data Alvo</label>
+                        <input type="date" id="goal-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-current">Valor Atual (R$)</label>
+                        <input type="number" id="goal-current" placeholder="0,00" step="0.01" min="0" value="0">
+                    </div>
+                    <div class="form-actions">
+                        <button type="reset" class="btn-outline">Limpar</button>
+                        <button type="submit" class="btn">Adicionar Meta</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="goals-list">
+                <h2>Minhas Metas</h2>
+                <div id="goals-list"></div>
+            </div>
+        </div>
+        
+        <!-- Relatórios -->
+        <div id="reports" class="tab-content">
+            <h2>Relatórios</h2>
+            <div class="report-filters">
+                <div class="filter-group">
+                    <label for="report-period">Período</label>
+                    <select id="report-period">
+                        <option value="month">Mês Atual</option>
+                        <option value="quarter">Trimestre Atual</option>
+                        <option value="year">Ano Atual</option>
+                        <option value="custom">Personalizado</option>
+                    </select>
+                </div>
+                <div id="custom-period" class="hidden">
+                    <div class="filter-group">
+                        <label for="report-start">Data Inicial</label>
+                        <input type="date" id="report-start">
+                    </div>
+                    <div class="filter-group">
+                        <label for="report-end">Data Final</label>
+                        <input type="date" id="report-end">
+                    </div>
+                </div>
+                <button id="generate-report" class="btn">Gerar Relatório</button>
+            </div>
+            
+            <div class="report-container">
+                <div id="report-summary" class="report-summary"></div>
+                <div class="report-charts">
+                    <div class="chart-container">
+                        <h3>Despesas por Categoria</h3>
+                        <canvas id="category-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Evolução Mensal</h3>
+                        <canvas id="monthly-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Backup em Nuvem -->
+    <div class="cloud-backup">
+        <button id="backup-btn" class="btn">Backup em Nuvem</button>
+        <div id="backup-options" class="hidden"></div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="cloud-integration.js"></script>
+</body>
+</html>   <button id="google-drive" class="btn">Google Drive</button>
+            <button id="onedrive" class="btn">OneDrive</button>
+            <button id="download-backup" class="btn">Download Local</button>
+            <button id="restore-backup" class="btn">Restaurar Backup</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
